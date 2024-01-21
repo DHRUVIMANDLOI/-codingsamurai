@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToDo List</title>
+  <style>
+    body {
+      font-family: 'Sans-serif';
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(180deg, #001f3f, #003366);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #app {
+      display: flex;
+      width: 800px;
+      margin-top: 20px;
+    }
+
+    #watch {
+      width: 200px;
+      background-color: #34495e;
+      padding: 10px;
+      text-align: center;
+      color: #fff;
+    }
+
+    #lists {
+      display: flex;
+      justify-content: space-between;
+      width: 600px;
+    }
+
+    #todo-list {
+      width: 300px;
+      padding: 10px;
+      background-color: #2c3e50;
+      border: 1px solid #34495e;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-right: 20px;
+    }
+
+    .task {
+      display: flex;
+      background-color: #99ccff;
+      margin-bottom: 5px;
+      padding: 5px;
+    }
+
+    .task input {
+      flex: 1;
+      border: none;
+      background-color: #001f3f;
+      margin-right: 5px;
+      color: #fff;
+    }
+
+    .task button {
+      background-color: #2c3e50;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    #drawing-list {
+      width: 300px;
+      padding: 10px;
+      background-color: #2c3e50;
+      border: 1px solid #34495e;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    #drawing {
+      background-color: #34495e;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    canvas {
+      border: 1px solid #fff;
+      margin-top: 10px;
+    }
+
+    button {
+      margin: 5px;
+      padding: 5px 10px;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      background-color: #3498db;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="watch">
+      <h2>Watch</h2>
+      <div id="clock">00:00:00</div>
+    </div>
+    <div id="lists">
+      <div id="todo-list">
+        <h2>To-Do List</h2>
+        <div id="list"></div>
+        <button id="addTask">Add Task</button>
+        <button id="clearTasks">Clear Finished Tasks</button>
+      </div>
+      <div id="drawing-list">
+        <h2>Drawing To-Do List</h2>
+        <div id="drawing">
+          <canvas id="drawingCanvas" width="250" height="200"></canvas>
+          <button id="clearDrawing">Clear Drawing</button>
+          <button id="pencil">Pencil</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const listContainer = document.getElementById('list');
+      const addTaskButton = document.getElementById('addTask');
+      const clearTasksButton = document.getElementById('clearTasks');
+      const watchClock = document.getElementById('clock');
+      const drawingCanvas = document.getElementById('drawingCanvas');
+      const clearDrawingButton = document.getElementById('clearDrawing');
+      const pencilButton = document.getElementById('pencil');
+
+      let drawingContext = drawingCanvas.getContext('2d');
+      let isDrawing = false;
+
+      pencilButton.addEventListener('click', function () {
+        isDrawing = !isDrawing;
+        pencilButton.style.backgroundColor = isDrawing ? '#e74c3c' : '#3498db';
+      });
+
+      drawingCanvas.addEventListener('mousedown', function (event) {
+        isDrawing = true;
+        draw(event);
+      });
+
+      drawingCanvas.addEventListener('mousemove', function (event) {
+        if (isDrawing) {
+          draw(event);
+        }
+      });
+
+      drawingCanvas.addEventListener('mouseup', function () {
+        isDrawing = false;
+        drawingContext.beginPath();
+      });
+
+      function draw(event) {
+        if (!isDrawing) return;
+
+        drawingContext.lineWidth = 5;
+        drawingContext.lineCap = 'round';
+        drawingContext.strokeStyle = '#fff';
+
+        drawingContext.lineTo(event.clientX - drawingCanvas.getBoundingClientRect().left, event.clientY - drawingCanvas.getBoundingClientRect().top);
+        drawingContext.stroke();
+        drawingContext.beginPath();
+        drawingContext.moveTo(event.clientX - drawingCanvas.getBoundingClientRect().left, event.clientY - drawingCanvas.getBoundingClientRect().top);
+      }
+
+      addTaskButton.addEventListener('click', function () {
+        const taskElement = document.createElement('div');
+        taskElement.className = 'task';
+
+        const inputElement = document.createElement('input');
+        inputElement.type = 'text';
+        inputElement.placeholder = 'Write something...';
+
+        const doneButton = document.createElement('button');
+        doneButton.innerText = 'Done';
+
+        taskElement.appendChild(inputElement);
+        taskElement.appendChild(doneButton);
+
+        listContainer.appendChild(taskElement);
+
+        doneButton.addEventListener('click', function () {
+          taskElement.style.backgroundColor = '#000000';
+          inputElement.style.backgroundColor = '#001f3f ';
+        });
+      });
+
+      clearTasksButton.addEventListener('click', function () {
+        const tasks = document.querySelectorAll('.task');
+        tasks.forEach(function (task) {
+          if (task.style.backgroundColor === 'rgb(0, 0, 0)') {
+            task.remove();
+          }
+        });
+      });
+
+      function updateClock() {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        watchClock.innerText = `${hours}:${minutes}:${seconds}`;
+      }
+
+      setInterval(updateClock, 1000);
+
+      clearDrawingButton.addEventListener('click', function () {
+        drawingContext.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+      });
+    });
+  </script>
+</body>
+</html>
+
+
